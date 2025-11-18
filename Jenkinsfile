@@ -9,7 +9,7 @@ pipeline {
 
   options {
     timestamps()
-    ansiColor('xterm')   // ✅ valid if plugin is installed
+    // ansiColor removed from here
   }
 
   parameters {
@@ -23,33 +23,44 @@ pipeline {
   stages {
     stage('Prepare') {
       steps {
-        echo "Using IMAGE_NAME=${env.IMAGE_NAME}"
+        ansiColor('xterm') {
+          script {
+            pipelineConfig()
+            echo "Using IMAGE_NAME=${env.IMAGE_NAME}"
+          }
+        }
       }
     }
 
     stage('Build image') {
       steps {
-        bat """
-          docker build -t %IMAGE_NAME% -f docker/Dockerfile .
-        """
+        ansiColor('xterm') {
+          bat """
+            docker build -t %IMAGE_NAME% -f docker/Dockerfile .
+          """
+        }
       }
     }
 
     stage('K8s deploy') {
       steps {
-        bat """
-          kubectl config current-context
-          kubectl create namespace %K8S_NAMESPACE% --dry-run=client -o yaml | kubectl apply -f -
-          kubectl set image -n %K8S_NAMESPACE% deployment/%APP_NAME% %APP_NAME%=%IMAGE_NAME% --record || kubectl apply -n %K8S_NAMESPACE% -f k8s\\deployment.yaml
-          kubectl rollout status -n %K8S_NAMESPACE% deployment/%APP_NAME%
-        """
+        ansiColor('xterm') {
+          bat """
+            kubectl config current-context
+            kubectl create namespace %K8S_NAMESPACE% --dry-run=client -o yaml | kubectl apply -f -
+            kubectl set image -n %K8S_NAMESPACE% deployment/%APP_NAME% %APP_NAME%=%IMAGE_NAME% --record || kubectl apply -n %K8S_NAMESPACE% -f k8s\\deployment.yaml
+            kubectl rollout status -n %K8S_NAMESPACE% deployment/%APP_NAME%
+          """
+        }
       }
     }
   }
 
   post {
     always {
-      echo "Pipeline finished for ${env.IMAGE_NAME}"
+      ansiColor('xterm') {
+        echo "Pipeline finished for ${env.IMAGE_NAME}"
+      }
     }
   }
 }
