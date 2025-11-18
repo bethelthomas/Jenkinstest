@@ -17,8 +17,9 @@ pipeline {
   }
 
   libraries {
-    lib('fast-shared-lib')
-  }
+  lib('fast-shared-lib@main')
+}
+
 
   stages {
     stage('Prepare') {
